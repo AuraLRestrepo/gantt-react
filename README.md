@@ -1,73 +1,125 @@
-# React + TypeScript + Vite
+# GanttPro — Diagrama de Gantt Interactivo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web de gestión de proyectos con diagrama de Gantt interactivo,
+construida como proyecto de portafolio para demostrar dominio de React moderno
+con TypeScript. El objetivo es reflejar decisiones de arquitectura reales,
+no solo que "funcione".
 
-Currently, two official plugins are available:
+## Stack tecnológico
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| Herramienta | Versión | Decisión |
+|---|---|---|
+| React | 19.2 | Última versión estable |
+| TypeScript | 6.0 | Strict mode activado |
+| Vite | 8.0 | Dev server con ESM nativo, reemplaza CRA |
+| Tailwind CSS | 4.3 | CSS-first config con `@theme`, sin `tailwind.config.js` |
+| React Router | 7.x | Data Router con `createBrowserRouter` |
+| Lucide React | latest | Iconos tree-shakeable como componentes React |
+| ESLint + Prettier | latest | Integrados sin conflictos vía `eslint-config-prettier` |
 
-## React Compiler
+## Estructura del proyecto
+src/
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+├── components/
 
-## Expanding the ESLint configuration
+│   ├── layout/       # AppLayout, Sidebar, PageHeader
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+│   └── ui/           # Avatar, Badge, Card, ProgressBar
 
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
+├── hooks/            # Custom hooks reutilizables
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+├── lib/              # Funciones puras: cn(), metrics, taskMeta
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+├── pages/            # Una página = una ruta
+
+├── services/         # Capa de datos (mock → API real en Fase 2)
+
+├── store/            # Estado global (Context + useReducer)
+
+└── types/            # Tipos del dominio TypeScript
+
+## Decisiones de arquitectura
+
+### Tipos antes que componentes
+El dominio se modela en `src/types/index.ts` antes de tocar la UI.
+Los tipos usan union types (`"pending" | "in-progress" | "completed" | "blocked"`)
+en vez de `enum` — desaparecen al compilar, cero peso en el bundle.
+Las fechas son `string` ISO (`"YYYY-MM-DD"`) para mapear directamente
+con el JSON que devolverá la API REST en la Fase 2.
+
+### Patrón Repository en `services/`
+Los datos nunca se exportan como arrays directos. Siempre a través
+de funciones (`getTasks()`, `getMemberById(id)`). Hoy devuelven
+mock data; en la Fase 2 (Node) solo cambia el cuerpo de esas funciones
+a `fetch()` — el resto de la app no se entera del cambio.
+
+### Datos derivados en `lib/metrics.ts`
+Las métricas del Dashboard (`completedTasks`, `overallProgress`, etc.)
+se calculan desde el array de tareas en cada render, nunca se guardan
+como estado separado. Evita la desincronización entre dato real y
+dato calculado, que es una fuente común de bugs silenciosos.
+
+### Sistema de diseño con tokens CSS en `@theme`
+Los colores son variables CSS nativas (`--color-status-completed`,
+`--color-brand`, etc.) definidas en `@theme` de Tailwind v4.
+Consecuencia práctica: los tokens son accesibles como `var(--color-...)`
+en cualquier contexto — componentes React, SVG inline (el Gantt los usa),
+o estilos calculados en runtime.
+
+### `Record<TaskStatus, Config>` en `taskMeta.ts`
+El mapping de estado → color/label vive en un solo lugar.
+Al usar `Record<TaskStatus, {...}>`, TypeScript garantiza que si
+se agrega un nuevo status al union type, hay que actualizar
+el mapping — error en compilación, no en producción.
+
+### Alias `@/` configurado en Vite y TypeScript
+Configurado en `vite.config.ts` (resolución en build/dev) y en
+`tsconfig.app.json` (análisis de tipos en el editor). Ambos necesarios
+porque son sistemas de resolución independientes.
+
+## Cómo correr el proyecto
+
+```bash
+# Instalar dependencias
+npm install
+
+# Servidor de desarrollo
+npm run dev
+
+# Verificar tipos
+npx tsc --noEmit -p tsconfig.app.json
+
+# Formatear código
+npm run format
+
+# Verificar formato y linting
+npm run format:check
+npx eslint .
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Estado actual del proyecto
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+| Etapa | Descripción | Estado |
+|---|---|---|
+| 0 | Setup (Vite, TypeScript, Tailwind v4, ESLint + Prettier) | ✅ |
+| 1 | Tipos del dominio (Task, Project, Member) | ✅ |
+| 2 | Capa de servicios con patrón Repository | ✅ |
+| 3 | Sistema de diseño con tokens CSS en @theme | ✅ |
+| 4 | Layout, routing (React Router v7), Sidebar con colapso | ✅ |
+| 5 | Componentes UI reutilizables (Avatar, Badge, Card, ProgressBar) | ✅ |
+| 6 | Dashboard con métricas derivadas | 🔄 En progreso |
+| 7 | Estado global (Context + useReducer) | ⏳ |
+| 8 | Diagrama de Gantt interactivo con drag & drop | ⏳ |
+| 9 | Páginas restantes (Proyectos, Recursos, Reportes, Config) | ⏳ |
+| 10 | Pulido, accesibilidad y build de producción | ⏳ |
 
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+## Próximamente — Fase 2 (Backend Node)
+
+- API REST con Express/Fastify + TypeScript
+- Base de datos PostgreSQL + Prisma ORM
+- Autenticación JWT
+- Migración de `services/` de mock data a `fetch` real
+
+## Autor
+
+Desarrollado por **Aura L Restrepo** como proyecto de portafolio.
