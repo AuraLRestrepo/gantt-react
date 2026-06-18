@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  /* Superficies */
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f8f9fb;
+  --color-surface-sunken: #f1f2f5;
+
+  /* Sidebar (oscuro) */
+  --color-sidebar: #14161f;
+  --color-sidebar-hover: #1e2130;
+  --color-sidebar-active: #262a3d;
+  --color-sidebar-border: #262838;
+  --color-sidebar-text: #9498ab;
+  --color-sidebar-text-active: #ffffff;
+
+  /* Bordes / texto */
+  --color-border: #e6e8ed;
+  --color-ink: #14161f;
+  --color-ink-muted: #6b7080;
+  --color-ink-faint: #9ca0b0;
+
+  /* Marca */
+  --color-brand: #5b5bf6;
+  --color-brand-hover: #4747e8;
+  --color-brand-soft: #edecff;
+
+  /* Estado de tarea */
+  --color-status-completed: #16a34a;
+  --color-status-completed-soft: #e9f8ef;
+  --color-status-progress: #2563eb;
+  --color-status-progress-soft: #eaf1ff;
+  --color-status-blocked: #dc2626;
+  --color-status-blocked-soft: #fdecec;
+  --color-status-pending: #6b7080;
+  --color-status-pending-soft: #f1f2f5;
+
+  /* Prioridad */
+  --color-priority-high: #dc2626;
+  --color-priority-medium: #d97706;
+  --color-priority-low: #6b7080;
+}
+
+@layer base {
+  body {
+    margin: 0;
+    background: var(--color-surface-subtle);
+    color: var(--color-ink);
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      Oxygen,
+      Ubuntu,
+      Cantarell,
+      "Open Sans",
+      "Helvetica Neue",
+      sans-serif;
+  }
+}
