@@ -24,13 +24,15 @@ src/
 
 │   ├── layout/       # AppLayout, Sidebar, PageHeader
 
-│   └── ui/           # Avatar, Badge, Card, ProgressBar
+│   ├── ui/           # Avatar, Badge, Card, ProgressBar
 
-├── hooks/            # Custom hooks reutilizables
+│   └── gantt/        # GanttBar, GanttTaskTable, TimelineHeader, ViewScaleToggle
 
-├── lib/              # Funciones puras: cn(), metrics, taskMeta
+├── hooks/            # useGanttGeometry, useGanttDrag
 
-├── pages/            # Una página = una ruta
+├── lib/              # cn(), metrics, taskMeta, date
+
+├── pages/            # Dashboard, Gantt, Projects, Resources, Reports, Settings
 
 ├── services/         # Capa de datos (mock → API real en Fase 2)
 
@@ -57,25 +59,48 @@ a `fetch()` — el resto de la app no se entera del cambio.
 Las métricas del Dashboard (`completedTasks`, `overallProgress`, etc.)
 se calculan desde el array de tareas en cada render, nunca se guardan
 como estado separado. Evita la desincronización entre dato real y
-dato calculado, que es una fuente común de bugs silenciosos.
+dato calculado.
 
 ### Sistema de diseño con tokens CSS en `@theme`
 Los colores son variables CSS nativas (`--color-status-completed`,
-`--color-brand`, etc.) definidas en `@theme` de Tailwind v4.
-Consecuencia práctica: los tokens son accesibles como `var(--color-...)`
-en cualquier contexto — componentes React, SVG inline (el Gantt los usa),
-o estilos calculados en runtime.
+`--color-brand`, etc.) definidas en `@theme` de Tailwind v4, expuestas
+también como clases cortas (`bg-brand`, `border-border`) que Tailwind
+genera automáticamente a partir de los tokens.
 
 ### `Record<TaskStatus, Config>` en `taskMeta.ts`
 El mapping de estado → color/label vive en un solo lugar.
-Al usar `Record<TaskStatus, {...}>`, TypeScript garantiza que si
-se agrega un nuevo status al union type, hay que actualizar
-el mapping — error en compilación, no en producción.
+Si se agrega un nuevo status al union type sin actualizar el mapping,
+TypeScript marca error en compilación, no en producción.
+
+### Estado global con Context + useReducer (`store/`)
+El estado de tareas (usado por el Gantt y el Dashboard) vive en un
+reducer con acciones tipadas mediante discriminated union
+(`MOVE_TASK`, `RESIZE_TASK`, `SET_PROGRESS`, `SET_STATUS`). El Context
+se separó en 3 archivos (`TasksContext.context.ts`, `TasksContext.tsx`,
+`useTasks.ts`) para cumplir con las reglas de Fast Refresh de Vite,
+que exigen que cada archivo `.tsx` exporte únicamente componentes.
+
+### Manejo de fechas sin bugs de zona horaria
+`new Date(isoString)` interpreta strings como UTC, pero `.setDate()`
+y los getters (`getDate()`, `getMonth()`) operan en hora local —
+mezclar ambos causa desfases de fechas. El proyecto usa
+`parseLocalDate()` y `toLocalISODate()` (en `lib/date.ts`), que
+parsean y serializan fechas usando exclusivamente componentes locales,
+evitando por completo `toISOString()` para este propósito.
+
+### El diagrama de Gantt sin librerías externas
+Drag & drop y resize de barras implementados con eventos nativos del
+mouse (`onMouseDown` + listeners de `window` para `mousemove`/`mouseup`),
+sin `react-dnd` ni `dnd-kit`. El estado de arrastre combina `useRef`
+(para lógica libre de stale closures dentro de los listeners) y
+`useState` (para disparar re-renders con el preview visual). El cambio
+real solo se confirma al store global (`moveTask`/`resizeTask`) al
+soltar el mouse — mientras se arrastra, el desplazamiento es estado
+local temporal, no se despacha al reducer en cada pixel de movimiento.
 
 ### Alias `@/` configurado en Vite y TypeScript
 Configurado en `vite.config.ts` (resolución en build/dev) y en
-`tsconfig.app.json` (análisis de tipos en el editor). Ambos necesarios
-porque son sistemas de resolución independientes.
+`tsconfig.app.json` (análisis de tipos en el editor).
 
 ## Cómo correr el proyecto
 
@@ -107,10 +132,10 @@ npx eslint .
 | 3 | Sistema de diseño con tokens CSS en @theme | ✅ |
 | 4 | Layout, routing (React Router v7), Sidebar con colapso | ✅ |
 | 5 | Componentes UI reutilizables (Avatar, Badge, Card, ProgressBar) | ✅ |
-| 6 | Dashboard con métricas derivadas | 🔄 En progreso |
-| 7 | Estado global (Context + useReducer) | ⏳ |
-| 8 | Diagrama de Gantt interactivo con drag & drop | ⏳ |
-| 9 | Páginas restantes (Proyectos, Recursos, Reportes, Config) | ⏳ |
+| 6 | Dashboard con métricas derivadas | ✅ |
+| 7 | Estado global (Context + useReducer) | ✅ |
+| 8 | Diagrama de Gantt interactivo: drag, resize, scroll sync, escalas | ✅ |
+| 9 | Páginas restantes (Proyectos, Recursos, Reportes, Configuración) | ✅ |
 | 10 | Pulido, accesibilidad y build de producción | ⏳ |
 
 ## Próximamente — Fase 2 (Backend Node)
