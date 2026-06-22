@@ -4,6 +4,8 @@ export type TaskPriority = "low" | "medium" | "high";
 
 export type ViewScale = "day" | "week" | "month";
 
+export type DragMode = "move" | "resize-start" | "resize-end";
+
 export interface Member {
   id: string;
   name: string;
@@ -37,4 +39,9 @@ export interface Project {
   ownerId: string;
   memberIds: string[];
   color: string;
+}
+
+export interface DragInfo {
+  mode: DragMode;
+  deltaDays: number;
 }

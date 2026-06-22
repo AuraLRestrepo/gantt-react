@@ -61,15 +61,15 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 to={to}
                 end={to === "/"}
                 title={collapsed ? label : undefined}
-                className={({ isActive }) => {
+                className={({ isActive }) =>
                   cn(
                     "flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     collapsed ? "justify-center" : "gap-3",
                     isActive
                       ? "bg-sidebar-active text-white"
                       : "text-sidebar-text hover:bg-sidebar-hover hover:text-white"
-                  );
-                }}
+                  )
+                }
               >
                 <Icon size={18} className="shrink-0" />
                 {!collapsed && <span>{label}</span>}

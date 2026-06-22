@@ -163,7 +163,7 @@ export function getTasks(): Task[] {
   return tasks;
 }
 
-export function getTaskByProject(projectId: string): Task[] {
+export function getTasksByProject(projectId: string): Task[] {
   return tasks.filter((task) => task.projectId === projectId);
 }
 
