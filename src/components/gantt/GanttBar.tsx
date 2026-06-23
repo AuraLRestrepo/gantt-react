@@ -45,6 +45,9 @@ export function GanttBar({
   return (
     <div
       onMouseDown={(e) => onStartDrag("move", e)}
+      role="button"
+      tabIndex={0}
+      aria-label={`${task.name}, ${task.progress} por ciento completado, ${STATUS_CONFIG[task.status].label}`}
       className={cn(
         "group absolute flex cursor-grab items-center overflow-hidden rounded-md text-xs font-medium text-white shadow-sm select-none",
         isDragging && "cursor-grabbing shadow-lg ring-2 ring-white/60"

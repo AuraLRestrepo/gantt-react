@@ -61,6 +61,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 to={to}
                 end={to === "/"}
                 title={collapsed ? label : undefined}
+                aria-label={label}
                 className={({ isActive }) =>
                   cn(
                     "flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors",
@@ -83,6 +84,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       <div className="border-t border-sidebar-border p-3">
         <button
           onClick={onToggle}
+          aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
           className={cn(
             "flex w-full items-center rounded-lg px-3 py-2 text-sm text-sidebar-text transition-colors hover:bg-sidebar-hover hover:text-white",
             collapsed ? "justify-center" : "gap-2"

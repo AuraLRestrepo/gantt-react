@@ -59,4 +59,9 @@
       "Helvetica Neue",
       sans-serif;
   }
+
+  *:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
 }
